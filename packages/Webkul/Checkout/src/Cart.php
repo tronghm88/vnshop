@@ -369,6 +369,8 @@ class Cart
 
             Event::dispatch('checkout.cart.update.before', $item);
 
+            // echo $item->base_price; die;
+
             $this->cartItemRepository->update([
                 'quantity'            => $quantity,
                 'total'               => core()->convertPrice($item->base_price * $quantity),

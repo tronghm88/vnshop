@@ -1,0 +1,64 @@
+.btn {
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Add to Cart Button */
+.btn-add-cart {
+  margin-top: auto;
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.btn-add-cart:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* View More Button */
+.btn-view-more {
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  background: #fff;
+  padding: 8px 60px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn-view-more:hover {
+  background: var(--primary);
+  color: #fff;
+}

@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'cache' => (bool) !env('APP_DEBUG', true),
     /*
     |--------------------------------------------------------------------------
     | Blade File Tracer

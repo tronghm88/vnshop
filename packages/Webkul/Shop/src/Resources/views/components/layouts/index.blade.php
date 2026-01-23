@@ -134,7 +134,9 @@
 
             <!-- Page Services Blade Component -->
             @if ($hasFeature)
+            <h1>Hello Services</h1>
                 <x-shop::layouts.services />
+                <h1>Hello World</h1>
             @endif
 
             <!-- Page Footer Blade Component -->

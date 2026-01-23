@@ -1,0 +1,77 @@
+<?php
+
+return [
+    [
+        'key'    => 'sales.carriers.vn_regional_shipping',
+        'name'   => 'Vietnam Regional Shipping',
+        'info'   => 'Vietnam Regional Shipping',
+        'sort'   => 5,
+        'fields' => [
+            [
+                'name'          => 'active',
+                'title'         => 'admin::app.admin.emails.general.active',
+                'type'          => 'boolean',
+                'validation'    => 'required',
+                'channel_based' => true,
+                'locale_based'  => false,
+            ],
+            [
+                'name'          => 'title',
+                'title'         => 'admin::app.admin.system.shipping-methods.title',
+                'type'          => 'text',
+                'validation'    => 'required',
+                'channel_based' => true,
+                'locale_based'  => true,
+            ],
+            [
+                'name'          => 'rate_north',
+                'title'         => 'Cước miền Bắc (VNĐ)',
+                'type'          => 'text',
+                'validation'    => 'required|numeric',
+                'channel_based' => true,
+                'locale_based'  => false,
+            ],
+            [
+                'name'          => 'rate_middle',
+                'title'         => 'Cước miền Trung (VNĐ)',
+                'type'          => 'text',
+                'validation'    => 'required|numeric',
+                'channel_based' => true,
+                'locale_based'  => false,
+            ],
+            [
+                'name'          => 'rate_south',
+                'title'         => 'Cước miền Nam (VNĐ)',
+                'type'          => 'text',
+                'validation'    => 'required|numeric',
+                'channel_based' => true,
+                'locale_based'  => false,
+            ],
+            [
+                'name'          => 'dim_divisor',
+                'title'         => 'Hệ số quy đổi kích thước (mặc định 6000)',
+                'info'          => 'Công thức: (Dài * Rộng * Cao) / Hệ số. Kết quả dùng để tính phụ phí kích thước cho từng sản phẩm.',
+                'type'          => 'text',
+                'validation'    => 'numeric',
+                'channel_based' => true,
+                'locale_based'  => false,
+            ],
+            [
+                'name'          => 'dimension_rates',
+                'title'         => 'Phụ phí kích thước (tính trên từng sản phẩm)',
+                'info'          => 'Định dạng: giá_trị:phí;giá_trị:phí (VD: 0.1:10000;0.5:20000). Nếu kích thước quy đổi của một sản phẩm đạt mức nào, sẽ cộng thêm phí tương ứng nhân với số lượng sản phẩm đó.',
+                'type'          => 'text',
+                'channel_based' => true,
+                'locale_based'  => false,
+            ],
+            [
+                'name'          => 'weight_rates',
+                'title'         => 'Phụ phí cân nặng (kg) (tính trên tổng giỏ hàng)',
+                'info'          => 'Định dạng: kg:phí;kg:phí (VD: 1:5000;5:15000). Phí sẽ áp dụng một lần cho mức cao nhất mà tổng cân nặng của cả giỏ hàng đạt tới.',
+                'type'          => 'text',
+                'channel_based' => true,
+                'locale_based'  => false,
+            ],
+        ],
+    ],
+];

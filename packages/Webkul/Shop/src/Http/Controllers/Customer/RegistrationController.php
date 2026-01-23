@@ -96,10 +96,18 @@ class RegistrationController extends Controller
         Event::dispatch('customer.registration.after', $customer);
 
         if (core()->getConfigData('customer.settings.email.verification')) {
-            session()->flash('success', trans('shop::app.customers.signup-form.success-verify'));
+            $message = trans('shop::app.customers.signup-form.success-verify');
         } else {
-            session()->flash('success', trans('shop::app.customers.signup-form.success'));
+            $message = trans('shop::app.customers.signup-form.success');
         }
+
+        if (request()->ajax()) {
+            return response()->json([
+                'message' => $message,
+            ]);
+        }
+
+        session()->flash('success', $message);
 
         return redirect()->route('shop.customer.session.index');
     }

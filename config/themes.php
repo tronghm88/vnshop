@@ -24,7 +24,19 @@ return [
                 'package_assets_directory' => 'src/Resources/assets',
             ],
         ],
+        'ta-vpp-theme' => [
+            'name'        => 'TA VPP',
+            'assets_path' => 'public/themes/shop/ta-vpp-theme',
+            'views_path'  => 'resources/themes/ta-vpp-theme/views',
+
+            'vite'        => [
+                'hot_file'                 => 'ta-vpp-theme-vite.hot',
+                'build_directory'          => 'themes/ta-vpp-theme/build',
+                'package_assets_directory' => 'src/Resources/assets',
+            ],
+        ],
     ],
+
 
     /*
     |--------------------------------------------------------------------------

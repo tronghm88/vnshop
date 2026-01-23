@@ -23,6 +23,12 @@ return [
             'package_assets_directory' => 'src/Resources/assets',
         ],
 
+        'ta-vpp-theme' => [
+            'hot_file'                 => 'ta-vpp-theme-vite.hot',
+            'build_directory'          => 'themes/ta-vpp-theme/build',
+            'package_assets_directory' => 'src/Resources/assets',
+        ],
+
         'installer' => [
             'hot_file'                 => 'installer-default-vite.hot',
             'build_directory'          => 'themes/installer/default/build',

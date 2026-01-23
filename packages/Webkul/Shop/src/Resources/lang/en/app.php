@@ -1025,12 +1025,14 @@ return [
                 'save-address'           => 'Save this to address book',
                 'select-country'         => 'Select Country',
                 'select-state'           => 'Select State',
+                'select-ward'            => 'Select Ward',
                 'shipping-address'       => 'Shipping Address',
                 'state'                  => 'State',
                 'street-address'         => 'Street Address',
                 'telephone'              => 'Telephone',
                 'title'                  => 'Address',
                 'vat-id'                 => 'Vat ID',
+                'confirm-address'        => 'Confirm Address',
             ],
 
             'index' => [
@@ -1044,6 +1046,8 @@ return [
 
             'shipping' => [
                 'shipping-method' => 'Shipping Method',
+                'select-address-first' => 'Please select province and ward to calculate shipping fee',
+                'confirm-shipping' => 'Confirm Shipping',
             ],
 
             'summary' => [
