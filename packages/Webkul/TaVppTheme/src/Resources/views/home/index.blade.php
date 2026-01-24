@@ -1,40 +1,75 @@
+@php
+    $channel = core()->getCurrentChannel();
+@endphp
+
+<!-- SEO Meta Content -->
+@push ('meta')
+    <meta
+        name="title"
+        content="{{ $channel->home_seo['meta_title'] ?? '' }}"
+    />
+
+    <meta
+        name="description"
+        content="{{ $channel->home_seo['meta_description'] ?? '' }}"
+    />
+
+    <meta
+        name="keywords"
+        content="{{ $channel->home_seo['meta_keywords'] ?? '' }}"
+    />
+@endPush
+
 <x-ta-vpp-theme::layouts>
+    <!-- Page Title -->
     <x-slot:title>
-        @lang('shop::app.home.page-title')
+        {{  $channel->home_seo['meta_title'] ?? '' }}
     </x-slot>
 
-    @php
-        $productRepository = app('Webkul\Product\Repositories\ProductRepository');
-        
-        // Fetch New Products
-        $newProducts = $productRepository->getAll([
-            'limit' => 10,
-            'sort'  => 'created_at',
-            'order' => 'desc',
-        ]);
+    <!-- Loop over the theme customization -->
+    @foreach ($customizations as $customization)
+        @php ($data = $customization->options) @endphp
 
-        // Fetch Featured Products
-        $featuredProducts = $productRepository->getAll([
-            'featured' => 1,
-            'limit'    => 10,
-        ]);
-    @endphp
+        <!-- Static content -->
+        @switch ($customization->type)
+            @case ($customization::IMAGE_CAROUSEL)
+                <!-- Image Carousel -->
+                <x-ta-vpp-theme::hero-slider
+                    :options="$data"
+                />
 
-    {{-- Hero Slider --}}
-    <x-ta-vpp-theme::hero-slider />
-    
-    {{-- New Products Carousel --}}
-    <x-ta-vpp-theme::products.carousel 
-        title="Sản phẩm mới nhất" 
-        :products="$newProducts" 
-        viewMoreUrl="{{ route('shop.search.index') }}"
-    />
+                @break
 
-    {{-- Featured Products Carousel --}}
-    <x-ta-vpp-theme::products.carousel 
-        title="Sản phẩm nổi bật" 
-        :products="$featuredProducts" 
-        viewMoreUrl="{{ route('shop.search.index', ['featured' => 1]) }}"
-    />
+            @case ($customization::STATIC_CONTENT)
+                <!-- push style -->
+                @if (! empty($data['css']))
+                    @push ('styles')
+                        <style>
+                            {{ $data['css'] }}
+                        </style>
+                    @endpush
+                @endif
 
+                <!-- render html -->
+                @if (! empty($data['html']))
+                    {!! $data['html'] !!}
+                @endif
+
+                @break
+
+            @case ($customization::CATEGORY_CAROUSEL)
+                {{-- Categories carousel - can be added later if needed --}}
+                @break
+
+            @case ($customization::PRODUCT_CAROUSEL)
+                <!-- Product Carousel -->
+                <x-ta-vpp-theme::products.carousel
+                    :title="$data['title'] ?? ''"
+                    :src="route('shop.api.products.index', $data['filters'] ?? [])"
+                    :view-more-url="route('shop.search.index', $data['filters'] ?? [])"
+                />
+
+                @break
+        @endswitch
+    @endforeach
 </x-ta-vpp-theme::layouts>

@@ -5,9 +5,24 @@ namespace Webkul\TaVppTheme\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Webkul\Checkout\Facades\Cart;
+use Webkul\CartRule\Repositories\CartRuleRepository;
+use Webkul\Customer\Repositories\CustomerRepository;
+use Webkul\Rule\Helpers\Validator;
+use Carbon\Carbon;
 
 class ShippingController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct(
+        protected CartRuleRepository $cartRuleRepository,
+        protected CustomerRepository $customerRepository,
+        protected Validator $validator
+    ) {}
+
     /**
      * Define North/Middle/South province lists by province codes.
      */
@@ -125,6 +140,10 @@ class ShippingController extends Controller
         // Calculate total
         $totalPrice = $baseRate + $totalDimensionSurcharge + $weightSurcharge;
 
+        // Check for free shipping
+        [$discountAmount, $appliedRules] = $this->applyFreeShippingRules($cart, $totalPrice);
+        $finalPrice = max(0, $totalPrice - $discountAmount);
+
         // Build response with detailed breakdown
         return response()->json([
             'success' => true,
@@ -137,8 +156,13 @@ class ShippingController extends Controller
             'weight_surcharge_formatted' => core()->formatBasePrice($weightSurcharge),
             'dimension_surcharge' => $totalDimensionSurcharge,
             'dimension_surcharge_formatted' => core()->formatBasePrice($totalDimensionSurcharge),
-            'total_price' => $totalPrice,
-            'total_price_formatted' => core()->formatBasePrice($totalPrice),
+            'total_price' => $finalPrice,
+            'total_price_formatted' => core()->formatBasePrice($finalPrice),
+            'original_price' => $totalPrice,
+            'original_price_formatted' => core()->formatBasePrice($totalPrice),
+            'discount_amount' => $discountAmount,
+            'discount_amount_formatted' => core()->formatBasePrice($discountAmount),
+            'applied_rules' => $appliedRules,
             'items' => $itemBreakdown,
             'breakdown_text' => $this->buildBreakdownText($baseRate, $totalDimensionSurcharge, $weightSurcharge, $totalActualWeight),
         ]);
@@ -238,5 +262,73 @@ class ShippingController extends Controller
         }
 
         return implode(" • ", $parts);
+    }
+
+    /**
+     * Apply free shipping rules.
+     *
+     * @param \Webkul\Checkout\Contracts\Cart $cart
+     * @param float $shippingPrice
+     * @return array
+     */
+    protected function applyFreeShippingRules($cart, $shippingPrice)
+    {
+        $discount = 0;
+        $appliedRules = [];
+
+        foreach ($cart->items as $item) {
+            foreach ($this->getCartRules() as $rule) {
+                // Skip if coupon is required but not present/matching
+                // (Simplified check - for full logic see CartRule helper)
+                if ($rule->coupon_type && !$cart->coupon_code) {
+                    continue;
+                }
+
+                if (!$this->validator->validate($rule, $item)) {
+                    continue;
+                }
+
+                if ($rule->free_shipping) {
+                    $discount = $shippingPrice;
+                    if (!in_array($rule->name, $appliedRules)) {
+                        $appliedRules[] = $rule->name;
+                    }
+                    
+                    if ($rule->end_other_rules) {
+                        return [$discount, $appliedRules];
+                    }
+                }
+            }
+        }
+
+        return [$discount, $appliedRules];
+    }
+
+    /**
+     * Get valid cart rules.
+     * 
+     * @return \Illuminate\Support\Collection
+     */
+    protected function getCartRules()
+    {
+        $customerGroup = $this->customerRepository->getCurrentGroup();
+
+        return $this->cartRuleRepository
+            ->leftJoin('cart_rule_customer_groups', 'cart_rules.id', '=', 'cart_rule_customer_groups.cart_rule_id')
+            ->leftJoin('cart_rule_channels', 'cart_rules.id', '=', 'cart_rule_channels.cart_rule_id')
+            ->where('cart_rule_customer_groups.customer_group_id', $customerGroup->id)
+            ->where('cart_rule_channels.channel_id', core()->getCurrentChannel()->id)
+            ->where(function ($query) {
+                $query->where('cart_rules.starts_from', '<=', Carbon::now()->format('Y-m-d H:m:s'))
+                    ->orWhereNull('cart_rules.starts_from');
+            })
+            ->where(function ($query) {
+                $query->where('cart_rules.ends_till', '>=', Carbon::now()->format('Y-m-d H:m:s'))
+                    ->orWhereNull('cart_rules.ends_till');
+            })
+            ->where('status', 1)
+            ->orderBy('sort_order', 'asc')
+            ->select('cart_rules.*')
+            ->get();
     }
 }

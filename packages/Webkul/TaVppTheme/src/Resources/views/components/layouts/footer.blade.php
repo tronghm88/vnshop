@@ -1,52 +1,105 @@
+@inject('themeCustomizationRepository', 'Webkul\Theme\Repositories\ThemeCustomizationRepository')
+
+@php
+    $channel = core()->getCurrentChannel();
+
+    $customization = $themeCustomizationRepository->findOneWhere([
+        'type'       => 'footer_links',
+        'status'     => 1,
+        'theme_code' => $channel->theme,
+        'channel_id' => $channel->id,
+    ]);
+
+@endphp
+
+{!! view_render_event('bagisto.shop.layout.footer.before') !!}
+
 {{-- Footer Component --}}
 <footer class="site-footer">
     <div class="container">
         <div class="footer-links">
             <div class="footer-col">
-                <h4>Về {{ config('app.name') }}</h4>
-                <p>{{ core()->getCurrentChannel()->description ?? 'Mua sắm văn phòng phẩm, bút, vở và quà tặng nhanh gọn.' }}</p>
-                <div class="social-links" style="margin-top: 15px; display: flex; gap: 15px;">
-                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#"><i class="fa-brands fa-youtube"></i></a>
-                </div>
+                @if ($logo = core()->getCurrentChannel()->logo_url)
+                    <img src="{{ $logo }}" alt="{{ config('app.name') }}" style="max-height: 40px;">
+                @else
+                    <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }}" style="max-height: 40px;">
+                @endif
+                <p>{!! core()->getCurrentChannel()->description ?? trans('ta-vpp-theme::app.emails.customers.subscribed.description') !!}</p>
             </div>
             
-            <div class="footer-col">
-                <h4>Chăm sóc khách hàng</h4>
-                <ul style="list-style: none; padding: 0;">
-                    <li><a href="#">Giao hàng & đổi trả</a></li>
-                    <li><a href="#">Phương thức thanh toán</a></li>
-                    <li><a href="#">Hỏi đáp</a></li>
-                    <li><a href="#">Chính sách bảo mật</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-col">
-                <h4>Liên kết nhanh</h4>
-                <ul style="list-style: none; padding: 0;">
-                    <li><a href="{{ route('shop.home.index') }}">Trang chủ</a></li>
-                    <li><a href="#">Tất cả sản phẩm</a></li>
-                    @guest('customer')
-                        <li><a href="{{ route('shop.customer.session.index') }}">Đăng nhập</a></li>
-                    @endguest
-                    @auth('customer')
-                        <li><a href="{{ route('shop.customers.account.profile.index') }}">Tài khoản</a></li>
-                    @endauth
-                    <li><a href="{{ route('shop.checkout.cart.index') }}">Thanh toán</a></li>
-                </ul>
-            </div>
+            @if ($customization?->options)
+                @foreach ($customization->options as $footerLinkSection)
+                    <div class="footer-col" v-pre>
+                        @php
+                            usort($footerLinkSection, function ($a, $b) {
+                                return $a['sort_order'] - $b['sort_order'];
+                            });
+                        @endphp
+
+                        <ul style="list-style: none; padding: 0;">
+                            @foreach ($footerLinkSection as $link)
+                                <li>
+                                    <a href="{{ $link['url'] }}">
+                                        {{ $link['title'] }}
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endforeach
+            @endif
 
             <div class="footer-col">
-                <h4>Liên hệ</h4>
-                <p><i class="fa-solid fa-location-dot"></i> {{ core()->getCurrentChannel()->address ?? 'Địa chỉ cửa hàng' }}</p>
-                <p><i class="fa-solid fa-phone"></i> {{ core()->getCurrentChannel()->phone ?? '1900 xxxx' }}</p>
-                <p><i class="fa-solid fa-envelope"></i> {{ core()->getCurrentChannel()->contact_email ?? 'contact@example.com' }}</p>
+                @if (core()->getConfigData('customer.settings.newsletter.subscription'))
+                    {!! view_render_event('bagisto.shop.layout.footer.newsletter_subscription.before') !!}
+
+                    <h4>@lang('shop::app.components.layouts.footer.newsletter-text')</h4>
+                    
+                    <p style="margin-bottom: 20px; color: #9ca3af; font-size: 14px;">
+                        @lang('shop::app.components.layouts.footer.subscribe-stay-touch')
+                    </p>
+
+                    <x-shop::form
+                        :action="route('shop.subscription.store')"
+                        style="margin-top: 10px;"
+                    >
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <x-shop::form.control-group.control
+                                type="email"
+                                name="email"
+                                rules="required|email"
+                                label="Email"
+                                :aria-label="trans('shop::app.components.layouts.footer.email')"
+                                placeholder="email@example.com"
+                                style="width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid #374151; background: #1f2937; color: #fff; font-size: 14px;"
+                            />
+
+                            <button
+                                type="submit"
+                                style="width: 100%; padding: 12px 25px; border-radius: 8px; background: var(--primary, #2563eb); color: #fff; border: none; cursor: pointer; font-weight: 600; font-size: 14px; transition: opacity 0.2s;"
+                                onmouseover="this.style.opacity='0.9'"
+                                onmouseout="this.style.opacity='1'"
+                            >
+                                @lang('shop::app.components.layouts.footer.subscribe')
+                            </button>
+                        </div>
+
+                        <x-shop::form.control-group.error control-name="email" style="margin-top: 5px; color: #ef4444; font-size: 12px;" />
+                    </x-shop::form>
+
+                    {!! view_render_event('bagisto.shop.layout.footer.newsletter_subscription.after') !!}
+                @endif
             </div>
         </div>
-        
+
         <div class="footer-bottom">
-            &copy; {{ date('Y') }} {{ config('app.name') }}. Bảo lưu mọi quyền.
+            {!! view_render_event('bagisto.shop.layout.footer.footer_text.before') !!}
+
+            @lang('shop::app.components.layouts.footer.footer-text', ['current_year' => date('Y')])
+
+            {!! view_render_event('bagisto.shop.layout.footer.footer_text.after') !!}
         </div>
     </div>
 </footer>
+
+{!! view_render_event('bagisto.shop.layout.footer.after') !!}

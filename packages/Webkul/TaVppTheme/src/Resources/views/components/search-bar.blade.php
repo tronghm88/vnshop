@@ -5,10 +5,10 @@
             type="search" 
             name="query" 
             value="{{ request()->get('query') }}"
-            placeholder="Tìm kiếm bút, vở, quà tặng..." 
+            placeholder="{{ trans('ta-vpp-theme::app.components.layouts.header.desktop.bottom.search-text') }}" 
             required
         />
-        <button type="submit" aria-label="Tìm kiếm">
+        <button type="submit" aria-label="{{ trans('ta-vpp-theme::app.components.layouts.header.desktop.bottom.search') }}">
             <i class="fa-solid fa-magnifying-glass"></i>
         </button>
     </form>

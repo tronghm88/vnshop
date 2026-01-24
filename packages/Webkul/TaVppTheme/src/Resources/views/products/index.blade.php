@@ -1,7 +1,7 @@
 {{-- Product Listing Page --}}
 <x-ta-vpp-theme::layouts>
     <x-slot:title>
-        Danh sách sản phẩm
+        {{ trans('ta-vpp-theme::app.search.results') }}
     </x-slot>
 
     <main class="page">
@@ -11,8 +11,8 @@
 
             {{-- Section Header with Sort --}}
             <div class="section-header">
-                <h2>Danh sách sản phẩm</h2>
-                <button class="btn">Sắp xếp: Phù hợp nhất</button>
+                <h2>{{ trans('ta-vpp-theme::app.search.results') }}</h2>
+                <button class="btn">@lang('ta-vpp-theme::app.categories.filters.sort'): {{ trans('ta-vpp-theme::app.products.sort-by.latest') }}</button>
             </div>
 
             {{-- Two Column Layout: Filters + Products --}}
@@ -84,7 +84,7 @@
                                 </div>
                                 <div class="sold-count">Đã bán {{ rand(10, 500) }}</div>
                             </div>
-                            <a class="btn-add-cart" href="#">Xem chi tiết</a>
+                            <a class="btn-add-cart" href="#">{{ trans('ta-vpp-theme::app.checkout.cart.index.see-details') }}</a>
                         </article>
                         @endfor
                     </div>
@@ -94,7 +94,7 @@
                         <button class="btn">1</button>
                         <button class="btn">2</button>
                         <button class="btn">3</button>
-                        <button class="btn">Tiếp</button>
+                        <button class="btn">{{ trans('ta-vpp-theme::app.partials.pagination.next-page') }}</button>
                     </div>
                 </section>
             </div>

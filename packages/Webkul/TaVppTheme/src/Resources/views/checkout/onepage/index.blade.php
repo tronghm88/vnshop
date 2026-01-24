@@ -1,5 +1,20 @@
 @php
     $cart = cart()->getCart();
+    $cartRuleRepository = app('Webkul\CartRule\Repositories\CartRuleRepository');
+    $appliedRuleIds = $cart->applied_cart_rule_ids ? explode(',', $cart->applied_cart_rule_ids) : [];
+    
+    $appliedRules = [];
+    $isFreeShipping = false;
+    
+    if (!empty($appliedRuleIds)) {
+        $rules = $cartRuleRepository->findWhereIn('id', $appliedRuleIds);
+        foreach ($rules as $rule) {
+            $appliedRules[] = $rule;
+            if ($rule->free_shipping) {
+                $isFreeShipping = true;
+            }
+        }
+    }
 @endphp
 
 <x-ta-vpp-theme::layouts>
@@ -95,7 +110,7 @@
                             </div>
                         </div>
                         <div id="shipping-breakdown" style="margin-top: 15px; padding: 15px; background: #fff3e0; border-radius: 8px; border-left: 4px solid #f57c00; display: none;">
-                            <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #e65100;">⚠️ Phụ phí áp dụng</h4>
+                            <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #e65100;">⚠️ {{ trans('ta-vpp-theme::app.checkout.onepage.shipping.surcharges') }}</h4>
                             <div id="shipping-breakdown-content"></div>
                         </div>
                     </div>
@@ -132,9 +147,9 @@
                             <span>{{ trans('shop::app.checkout.onepage.summary.sub-total') }}</span>
                             <span id="summary-subtotal">{{ core()->currency($cart->base_sub_total) }}</span>
                         </div>
-                        <div class="summary-line" id="shipping-rate-line" style="display: none;">
+                        <div class="summary-line" id="shipping-rate-line" style="display: {{ $isFreeShipping ? 'flex' : 'none' }};">
                             <span>{{ trans('shop::app.checkout.onepage.summary.delivery-charges') }}</span>
-                            <span id="summary-shipping">0 đ</span>
+                            <span id="summary-shipping">{{ $isFreeShipping ? '(' . trans('ta-vpp-theme::app.checkout.cart.index.free') . ')' : '0 đ' }}</span>
                         </div>
                         @if ($cart->base_tax_total > 0)
                             <div class="summary-line">
@@ -148,6 +163,22 @@
                                 <span id="summary-discount">-{{ core()->currency($cart->base_discount_amount) }}</span>
                             </div>
                         @endif
+
+                        @if (count($appliedRules) > 0)
+                            <div class="summary-line" style="display: block; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd;">
+                                <div style="font-weight: 600; margin-bottom: 5px; color: #e65100;">{{ trans('ta-vpp-theme::app.checkout.cart.index.applied-offers') }}</div>
+                                @foreach ($appliedRules as $rule)
+                                    <div style="font-size: 13px; color: #2e7d32; display: flex; align-items: center; margin-bottom: 4px;">
+                                        <span style="margin-right: 5px;">✓</span>
+                                        {{ $rule->name }}
+                                        @if ($rule->free_shipping)
+                                            <span style="margin-left: 5px; font-size: 11px; background: #e8f5e9; color: #2e7d32; padding: 2px 6px; border-radius: 4px;">{{ trans('ta-vpp-theme::app.checkout.cart.index.free-shipping') }}</span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+
                         <div class="summary-line summary-total">
                             <span>{{ trans('shop::app.checkout.onepage.summary.grand-total') }}</span>
                             <span id="summary-grandtotal">{{ core()->currency($cart->base_grand_total) }}</span>
@@ -295,7 +326,7 @@
 
                     // Show loading state
                     const container = document.getElementById('shipping-methods-container');
-                    container.innerHTML = '<div style="padding: 20px; text-align: center;"><p>Đang tính phí vận chuyển...</p></div>';
+                    container.innerHTML = '<div style="padding: 20px; text-align: center;"><p>{{ trans('ta-vpp-theme::app.checkout.onepage.shipping.calculating-shipping') }}</p></div>';
 
                     // Call API to calculate shipping
                     fetch('{{ route('tavpp.shipping.calculate') }}', {
@@ -317,17 +348,44 @@
                             updateOrderSummary(data);
                             loadPaymentMethods();
                         } else {
-                            container.innerHTML = `<div style="padding: 20px; text-align: center; color: #d32f2f;"><p>${data.error || 'Không thể tính phí vận chuyển'}</p></div>`;
+                            container.innerHTML = `<div style="padding: 20px; text-align: center; color: #d32f2f;"><p>${data.error || '{{ trans('ta-vpp-theme::app.checkout.onepage.shipping.cannot-calculate-shipping') }}'}</p></div>`;
                         }
                     })
                     .catch(err => {
                         console.error('Error calculating shipping:', err);
-                        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #d32f2f;"><p>Đã xảy ra lỗi khi tính phí vận chuyển</p></div>';
+                        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #d32f2f;"><p>{{ trans('ta-vpp-theme::app.checkout.onepage.shipping.error-calculating-shipping') }}</p></div>';
                     });
                 };
 
                 const displayShippingDetails = (data) => {
                     const container = document.getElementById('shipping-methods-container');
+                    
+                    let priceHtml = '';
+                    if (data.discount_amount > 0) {
+                        const rulesText = data.applied_rules && data.applied_rules.length > 0 
+                            ? `(Đã áp dụng: ${data.applied_rules.join(', ')})` 
+                            : '({{ trans('ta-vpp-theme::app.checkout.cart.index.free') }})';
+
+                        priceHtml = `
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="text-decoration: line-through; color: #999; font-size: 14px;">
+                                    ${data.original_price_formatted}
+                                </span>
+                                <span style="color: #2e7d32; font-weight: 700; font-size: 16px;">
+                                    ${data.total_price_formatted}
+                                </span>
+                                <span style="color: #e65100; font-size: 13px; font-weight: 500; margin-top: 2px;">
+                                    ${rulesText}
+                                </span>
+                            </div>
+                        `;
+                    } else {
+                        priceHtml = `
+                            <div style="font-weight: 700; color: #2e7d32; font-size: 16px;">
+                                ${data.total_price_formatted}
+                            </div>
+                        `;
+                    }
                     
                     // Display shipping method with radio button
                     let html = `
@@ -337,14 +395,12 @@
                                        checked style="margin-top: 4px; margin-right: 10px;">
                                 <div style="flex: 1;">
                                     <div style="font-weight: 600; margin-bottom: 5px;">
-                                        Vận chuyển nội địa - ${data.region_name}
+                                        {{ trans('ta-vpp-theme::app.checkout.onepage.shipping.domestic-shipping') }} - ${data.region_name}
                                     </div>
                                     <div style="font-size: 14px; color: #666; margin-bottom: 8px;">
                                         ${data.breakdown_text}
                                     </div>
-                                    <div style="font-weight: 700; color: #2e7d32; font-size: 16px;">
-                                        ${data.total_price_formatted}
-                                    </div>
+                                    ${priceHtml}
                                 </div>
                             </label>
                         </div>
@@ -365,16 +421,16 @@
                         const itemsWithSurcharges = data.items.filter(item => item.dimension_surcharge > 0);
                         
                         if (itemsWithSurcharges.length > 0) {
-                            breakdownHtml += '<div style="margin-bottom: 10px;"><strong>Sản phẩm có phụ phí kích thước:</strong></div>';
+                            breakdownHtml += '<div style="margin-bottom: 10px;"><strong>{{ trans('ta-vpp-theme::app.checkout.onepage.shipping.size-surcharge') }}</strong></div>';
                             
                             itemsWithSurcharges.forEach(item => {
                                 breakdownHtml += `
                                     <div style="margin-left: 10px; margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px; border-left: 3px solid #f57c00;">
                                         <div style="font-weight: 600; margin-bottom: 4px;">${item.name} (x${item.quantity})</div>
                                         <div style="color: #666; font-size: 12px;">
-                                            Kích thước: ${item.dimensions}
-                                            <br>Trọng lượng quy đổi: ${item.volumetric_weight} kg
-                                            <br><span style="color: #f57c00; font-weight: 600;">Phụ phí: +${new Intl.NumberFormat('vi-VN').format(item.dimension_surcharge)} đ</span>
+                                            {{ trans('ta-vpp-theme::app.checkout.onepage.shipping.dimensions') }} ${item.dimensions}
+                                            <br>{{ trans('ta-vpp-theme::app.checkout.onepage.shipping.volumetric-weight') }} ${item.volumetric_weight} kg
+                                            <br><span style="color: #f57c00; font-weight: 600;">{{ trans('ta-vpp-theme::app.checkout.onepage.shipping.surcharge') }} +${new Intl.NumberFormat('vi-VN').format(item.dimension_surcharge)} đ</span>
                                         </div>
                                     </div>
                                 `;
@@ -384,10 +440,10 @@
                         if (data.weight_surcharge > 0) {
                             breakdownHtml += `
                                 <div style="margin-top: 10px; padding: 8px; background: white; border-radius: 4px; border-left: 3px solid #f57c00;">
-                                    <strong>Phụ phí cân nặng tổng:</strong>
+                                    <strong>{{ trans('ta-vpp-theme::app.checkout.onepage.shipping.weight-surcharge') }}</strong>
                                     <div style="color: #666; font-size: 12px; margin-top: 4px;">
-                                        Tổng cân nặng đơn hàng: ${data.total_weight} kg
-                                        <br><span style="color: #f57c00; font-weight: 600;">Phụ phí: +${data.weight_surcharge_formatted}</span>
+                                        {{ trans('ta-vpp-theme::app.checkout.onepage.shipping.total-weight') }} ${data.total_weight} kg
+                                        <br><span style="color: #f57c00; font-weight: 600;">{{ trans('ta-vpp-theme::app.checkout.onepage.shipping.surcharge') }} +${data.weight_surcharge_formatted}</span>
                                     </div>
                                 </div>
                             `;
@@ -407,7 +463,7 @@
                     const container = document.getElementById('shipping-methods-container');
                     container.innerHTML = `
                         <div class="shipping-placeholder" style="padding: 20px; text-align: center; color: #666; background: #f5f5f5; border-radius: 8px;">
-                            <p style="margin: 0;">Vui lòng chọn tỉnh/thành phố và phường/xã để tính phí vận chuyển</p>
+                            <p style="margin: 0;">{{ trans('ta-vpp-theme::app.checkout.onepage.shipping.select-address-to-calculate') }}</p>
                         </div>
                     `;
                     
@@ -459,8 +515,8 @@
                                 <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
                                     <input type="radio" name="payment_method" value="cashondelivery" checked style="margin-right: 10px;">
                                     <div>
-                                        <div style="font-weight: 600;">Thanh toán khi nhận hàng (COD)</div>
-                                        <div style="font-size: 14px; color: #666; margin-top: 5px;">Thanh toán bằng tiền mặt khi nhận hàng</div>
+                                        <div style="font-weight: 600;">{{ trans('ta-vpp-theme::app.checkout.onepage.payment.cod') }}</div>
+                                        <div style="font-size: 14px; color: #666; margin-top: 5px;">{{ trans('ta-vpp-theme::app.checkout.onepage.payment.cod-desc') }}</div>
                                     </div>
                                 </label>
                             </div>
@@ -496,20 +552,20 @@
 
                         // Check if shipping method is selected
                         if (!currentShippingData) {
-                            alert('Vui lòng chọn địa chỉ giao hàng để tính phí vận chuyển');
+                            alert('{{ trans('ta-vpp-theme::app.checkout.onepage.alerts.select-address-first') }}');
                             return;
                         }
 
                         // Check if payment method is selected
                         const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
                         if (!paymentMethod) {
-                            alert('Vui lòng chọn phương thức thanh toán');
+                            alert('{{ trans('ta-vpp-theme::app.checkout.onepage.alerts.select-payment-method-first') }}');
                             return;
                         }
 
                         // Disable button and show loading
                         placeOrderBtn.disabled = true;
-                        placeOrderBtn.textContent = 'Đang xử lý...';
+                        placeOrderBtn.textContent = '{{ trans('ta-vpp-theme::app.checkout.onepage.alerts.processing') }}';
 
                         try {
                             const formData = new FormData(form);
@@ -541,7 +597,7 @@
                             });
 
                             if (!addressResponse.ok) {
-                                throw new Error('Lỗi khi lưu địa chỉ');
+                                throw new Error('{{ trans('ta-vpp-theme::app.checkout.onepage.alerts.save-address-error') }}');
                             }
 
                             // Step 2: Save shipping method
@@ -558,7 +614,7 @@
                             });
 
                             if (!shippingResponse.ok) {
-                                throw new Error('Lỗi khi lưu phương thức vận chuyển');
+                                throw new Error('{{ trans('ta-vpp-theme::app.checkout.onepage.alerts.save-shipping-error') }}');
                             }
 
                             // Step 3: Save payment method
@@ -576,7 +632,7 @@
                             });
 
                             if (!paymentResponse.ok) {
-                                throw new Error('Lỗi khi lưu phương thức thanh toán');
+                                throw new Error('{{ trans('ta-vpp-theme::app.checkout.onepage.alerts.save-payment-error') }}');
                             }
 
                             // Step 4: Place order
@@ -592,7 +648,7 @@
                             const orderResult = await orderResponse.json();
 
                             if (!orderResponse.ok) {
-                                throw new Error(orderResult.message || 'Lỗi khi tạo đơn hàng');
+                                throw new Error(orderResult.message || '{{ trans('ta-vpp-theme::app.checkout.onepage.alerts.create-order-error') }}');
                             }
 
                             // Success! Redirect to success page
@@ -604,7 +660,7 @@
 
                         } catch (error) {
                             console.error('Checkout error:', error);
-                            alert(error.message || 'Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại.');
+                            alert(error.message || '{{ trans('ta-vpp-theme::app.checkout.onepage.alerts.checkout-error') }}');
                             
                             // Re-enable button
                             placeOrderBtn.disabled = false;

@@ -1,6 +1,16 @@
 @php
     $cart = cart()->getCart();
     $items = $cart ? $cart->items : collect();
+    
+    // Fetch applied cart rules
+    $cartRuleRepository = app('Webkul\CartRule\Repositories\CartRuleRepository');
+    $appliedRuleIds = $cart && $cart->applied_cart_rule_ids ? explode(',', $cart->applied_cart_rule_ids) : [];
+    
+    $appliedRules = [];
+    
+    if (!empty($appliedRuleIds)) {
+        $appliedRules = $cartRuleRepository->findWhereIn('id', $appliedRuleIds);
+    }
 @endphp
 
 <x-ta-vpp-theme::layouts>
@@ -133,6 +143,21 @@
                             <div class="summary-row">
                                 <span>{{ trans('ta-vpp-theme::app.checkout.cart.summary.discount-amount') }}</span>
                                 <span class="summary-value">-{{ core()->currency($cart->base_discount_amount) }}</span>
+                            </div>
+                        @endif
+
+                        @if (count($appliedRules) > 0)
+                            <div class="summary-row" style="display: block; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd;">
+                                <div style="font-weight: 600; margin-bottom: 5px; color: #e65100;">{{ trans('ta-vpp-theme::app.checkout.cart.index.applied-offers') }}</div>
+                                @foreach ($appliedRules as $rule)
+                                    <div style="font-size: 13px; color: #2e7d32; display: flex; align-items: center; margin-bottom: 4px;">
+                                        <span style="margin-right: 5px;">✓</span>
+                                        {{ $rule->name }}
+                                        @if ($rule->free_shipping)
+                                            <span style="margin-left: 5px; font-size: 11px; background: #e8f5e9; color: #2e7d32; padding: 2px 6px; border-radius: 4px;">{{ trans('ta-vpp-theme::app.checkout.cart.index.free-shipping') }}</span>
+                                        @endif
+                                    </div>
+                                @endforeach
                             </div>
                         @endif
 

@@ -94,7 +94,7 @@
                     {{-- Title with Badge --}}
                     <div class="product-title-container">
                         @if ($isInStock)
-                            <span class="badge badge-best-seller">Còn hàng <i class="fa-solid fa-check"></i></span>
+                            <span class="badge badge-best-seller">{{ trans('ta-vpp-theme::app.products.view.in-stock') }} <i class="fa-solid fa-check"></i></span>
                         @endif
                         <h1>{{ $product->name }}</h1>
                     </div>
@@ -102,7 +102,7 @@
                     {{-- Product Meta Info --}}
                     <div class="product-meta-row">
                         @if ($product->brand)
-                            <span>Thương hiệu: <strong>{{ $product->brand }}</strong></span>
+                            <span>{{ trans('ta-vpp-theme::app.products.view.brand') }}: <strong>{{ $product->brand }}</strong></span>
                         @endif
                         <span>SKU: <strong>{{ $product->sku }}</strong></span>
                     </div>
@@ -120,21 +120,21 @@
                                         <i class="fa-regular fa-star"></i>
                                     @endif
                                 @endfor
-                                <span>({{ $totalReviews }} đánh giá)</span>
+                                <span>{{ trans('ta-vpp-theme::app.products.view.reviews-count', ['total' => $totalReviews]) }}</span>
                             @else
                                 @for ($i = 1; $i <= 5; $i++)
                                     <i class="fa-regular fa-star"></i>
                                 @endfor
-                                <span>(Chưa có đánh giá)</span>
+                                <span>{{ trans('ta-vpp-theme::app.products.view.no-reviews') }}</span>
                             @endif
                         </div>
                         
                         <div class="divider"></div>
                         
                         @if ($isInStock)
-                            <div class="stock-status" style="color: #27ae60;">Còn hàng</div>
+                            <div class="stock-status" style="color: #27ae60;">{{ trans('ta-vpp-theme::app.products.view.in-stock') }}</div>
                         @else
-                            <div class="stock-status" style="color: #e74c3c;">Hết hàng</div>
+                            <div class="stock-status" style="color: #e74c3c;">{{ trans('ta-vpp-theme::app.products.view.out-of-stock') }}</div>
                         @endif
                     </div>
 
@@ -152,9 +152,9 @@
                     @if(isset($availableVouchers) && $availableVouchers->count() > 0)
                         <div class="voucher-section">
                             <div class="voucher-title">
-                                Ưu đãi liên quan 
+                                {{ trans('ta-vpp-theme::app.products.view.related-offers') }} 
                                 <a href="{{ route('shop.home.index') }}#promotions">
-                                    Xem thêm <i class="fa-solid fa-chevron-right"></i>
+                                    {{ trans('ta-vpp-theme::app.checkout.cart.index.view-more') }} <i class="fa-solid fa-chevron-right"></i>
                                 </a>
                             </div>
                             <div class="voucher-list">
@@ -180,12 +180,12 @@
                                         {{ Str::limit($rule->name, 30) }}
                                         <div class="voucher-popup">
                                             <div class="voucher-popup-header">
-                                                <span>Chương trình ưu đãi</span>
+                                                <span>{{ trans('ta-vpp-theme::app.products.view.promotion-program') }}</span>
                                                 <i class="fa-solid fa-circle-info"></i>
                                             </div>
                                             @if($expirationDate)
                                                 <div class="voucher-popup-expiration">
-                                                    Hạn sử dụng
+                                                    {{ trans('ta-vpp-theme::app.products.view.expiry-date') }}
                                                 </div>
                                                 <div class="voucher-popup-date">
                                                     {{ $expirationDate }}
@@ -198,7 +198,7 @@
                                             @endif
                                             @if($couponCode)
                                                 <div class="voucher-popup-coupon">
-                                                    <span>Mã giảm giá:</span>
+                                                    <span>{{ trans('ta-vpp-theme::app.checkout.cart.coupon-code') }}:</span>
                                                     <div class="coupon-code-wrapper">
                                                         <code class="coupon-code">{{ $couponCode }}</code>
                                                         <button type="button" class="copy-coupon-btn" onclick="copyVoucherCode('{{ $couponCode }}', this)">
@@ -242,7 +242,7 @@
                     {{-- Quantity Control --}}
                     @if ($isInStock)
                         <div class="quantity-section">
-                            <label>Số lượng:</label>
+                            <label>{{ trans('ta-vpp-theme::app.checkout.cart.index.quantity') }}:</label>
                             <div class="quantity-control">
                                 <button type="button" onclick="decreaseQuantity()">
                                     <i class="fa-solid fa-minus"></i>
@@ -255,84 +255,7 @@
                         </div>
 
                         {{-- Shipping Estimation --}}
-                        <div class="shipping-estimation-section" style="margin-top: 15px; padding: 10px; background: #f9f9f9; border-radius: 8px;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Ước tính phí giao hàng:</label>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <select id="shipping_province" class="control" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" onchange="estimateShipping()">
-                                    <option value="">Chọn Tỉnh/Thành phố</option>
-                                    <optgroup label="Miền Bắc">
-                                        <option value="Hà Nội">Hà Nội</option>
-                                        <option value="Hà Giang">Hà Giang</option>
-                                        <option value="Cao Bằng">Cao Bằng</option>
-                                        <option value="Bắc Kạn">Bắc Kạn</option>
-                                        <option value="Tuyên Quang">Tuyên Quang</option>
-                                        <option value="Lào Cai">Lào Cai</option>
-                                        <option value="Điện Biên">Điện Biên</option>
-                                        <option value="Lai Châu">Lai Châu</option>
-                                        <option value="Sơn La">Sơn La</option>
-                                        <option value="Yên Bái">Yên Bái</option>
-                                        <option value="Hoà Bình">Hoà Bình</option>
-                                        <option value="Thái Nguyên">Thái Nguyên</option>
-                                        <option value="Lạng Sơn">Lạng Sơn</option>
-                                        <option value="Quảng Ninh">Quảng Ninh</option>
-                                        <option value="Bắc Giang">Bắc Giang</option>
-                                        <option value="Phú Thọ">Phú Thọ</option>
-                                        <option value="Vĩnh Phúc">Vĩnh Phúc</option>
-                                        <option value="Bắc Ninh">Bắc Ninh</option>
-                                        <option value="Hải Dương">Hải Dương</option>
-                                        <option value="Hải Phòng">Hải Phòng</option>
-                                        <option value="Hưng Yên">Hưng Yên</option>
-                                        <option value="Thái Bình">Thái Bình</option>
-                                        <option value="Hà Nam">Hà Nam</option>
-                                        <option value="Nam Định">Nam Định</option>
-                                        <option value="Ninh Bình">Ninh Bình</option>
-                                    </optgroup>
-                                    <optgroup label="Miền Trung">
-                                        <option value="Thanh Hóa">Thanh Hóa</option>
-                                        <option value="Nghệ An">Nghệ An</option>
-                                        <option value="Hà Tĩnh">Hà Tĩnh</option>
-                                        <option value="Quảng Bình">Quảng Bình</option>
-                                        <option value="Quảng Trị">Quảng Trị</option>
-                                        <option value="Thừa Thiên Huế">Thừa Thiên Huế</option>
-                                        <option value="Đà Nẵng">Đà Nẵng</option>
-                                        <option value="Quảng Nam">Quảng Nam</option>
-                                        <option value="Quảng Ngãi">Quảng Ngãi</option>
-                                        <option value="Bình Định">Bình Định</option>
-                                        <option value="Phú Yên">Phú Yên</option>
-                                        <option value="Khánh Hòa">Khánh Hòa</option>
-                                        <option value="Ninh Thuận">Ninh Thuận</option>
-                                        <option value="Bình Thuận">Bình Thuận</option>
-                                        <option value="Kon Tum">Kon Tum</option>
-                                        <option value="Gia Lai">Gia Lai</option>
-                                        <option value="Đắk Lắk">Đắk Lắk</option>
-                                        <option value="Đắk Nông">Đắk Nông</option>
-                                        <option value="Lâm Đồng">Lâm Đồng</option>
-                                    </optgroup>
-                                    <optgroup label="Miền Nam">
-                                        <option value="TP Hồ Chí Minh">TP Hồ Chí Minh</option>
-                                        <option value="Bình Phước">Bình Phước</option>
-                                        <option value="Tây Ninh">Tây Ninh</option>
-                                        <option value="Bình Dương">Bình Dương</option>
-                                        <option value="Đồng Nai">Đồng Nai</option>
-                                        <option value="Bà Rịa - Vũng Tàu">Bà Rịa - Vũng Tàu</option>
-                                        <option value="Long An">Long An</option>
-                                        <option value="Tiền Giang">Tiền Giang</option>
-                                        <option value="Bến Tre">Bến Tre</option>
-                                        <option value="Trà Vinh">Trà Vinh</option>
-                                        <option value="Vĩnh Long">Vĩnh Long</option>
-                                        <option value="Đồng Tháp">Đồng Tháp</option>
-                                        <option value="An Giang">An Giang</option>
-                                        <option value="Kiên Giang">Kiên Giang</option>
-                                        <option value="Cần Thơ">Cần Thơ</option>
-                                        <option value="Hậu Giang">Hậu Giang</option>
-                                        <option value="Sóc Trăng">Sóc Trăng</option>
-                                        <option value="Bạc Liêu">Bạc Liêu</option>
-                                        <option value="Cà Mau">Cà Mau</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                            <div id="shipping_estimate_result" style="margin-top: 8px; font-size: 14px; color: #333;"></div>
-                        </div>
+                       
 
                         {{-- Action Buttons --}}
                         <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px;">
@@ -344,7 +267,7 @@
                                 onclick="addToCart()"
                             >
                                 <i class="fa-solid fa-cart-shopping"></i> 
-                                <span id="addToCartText">Thêm vào giỏ hàng</span>
+                                <span id="addToCartText">{{ trans('ta-vpp-theme::app.products.view.add-to-cart') }}</span>
                             </button>
                             <button 
                                 type="button"
@@ -353,12 +276,12 @@
                                 style="flex: 1; padding: 12px;"
                                 onclick="buyNow()"
                             >
-                                Mua ngay
+                                {{ trans('ta-vpp-theme::app.products.view.buy-now') }}
                             </button>
                         </div>
                     @else
                         <div style="padding: 20px; background: #fee; border-radius: 8px; text-align: center; color: #c33;">
-                            <i class="fa-solid fa-circle-exclamation"></i> Sản phẩm tạm thời hết hàng
+                            <i class="fa-solid fa-circle-exclamation"></i> {{ trans('shop::app.products.view.inventory.out-of-stock') }}
                         </div>
                     @endif
 
@@ -366,15 +289,15 @@
                     <div class="info-grid" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
                         <div class="info-item" style="background: none; padding: 5px 0;">
                             <i class="fa-solid fa-truck" style="color: var(--primary); width: 20px;"></i>
-                            <strong>Giao hàng nhanh:</strong> Giao hàng toàn quốc
+                            <strong style="margin-right: 5px;">{{ trans('ta-vpp-theme::app.products.view.fast-delivery') }}</strong>{{ trans('ta-vpp-theme::app.products.view.nationwide-delivery') }}
                         </div>
                         <div class="info-item" style="background: none; padding: 5px 0;">
                             <i class="fa-solid fa-rotate-left" style="color: var(--primary); width: 20px;"></i>
-                            <strong>Đổi trả dễ dàng:</strong> Trong vòng 7 ngày
+                            <strong style="margin-right: 5px;">{{ trans('ta-vpp-theme::app.products.view.easy-returns') }}</strong>{{ trans('ta-vpp-theme::app.products.view.seven-days-returns') }}
                         </div>
                         <div class="info-item" style="background: none; padding: 5px 0;">
                             <i class="fa-solid fa-shield-halved" style="color: var(--primary); width: 20px;"></i>
-                            <strong>Thanh toán an toàn:</strong> Bảo mật thông tin
+                            <strong style="margin-right: 5px;">{{ trans('ta-vpp-theme::app.products.view.secure-payment') }}</strong>{{ trans('ta-vpp-theme::app.products.view.secure-info') }}
                         </div>
                     </div>
                 </form>
@@ -383,7 +306,7 @@
 
         {{-- Rating Section --}}
         <section class="rating-section">
-            <div class="rating-header">Đánh giá sản phẩm</div>
+            <div class="rating-header">{{ trans('ta-vpp-theme::app.products.view.review') }}</div>
             
             <div class="rating-summary">
                 {{-- Overall Rating --}}
@@ -400,14 +323,14 @@
                             @endif
                         @endfor
                     </div>
-                    <div class="count">({{ $totalReviews }} đánh giá)</div>
+                    <div class="count">{{ trans('ta-vpp-theme::app.products.view.reviews-count', ['total' => $totalReviews]) }}</div>
                 </div>
                 
                 {{-- Rating Bars --}}
                 <div class="rating-bars">
                     @for ($star = 5; $star >= 1; $star--)
                         <div class="rating-bar-item">
-                            <span>{{ $star }} sao</span>
+                            <span>{{ trans('ta-vpp-theme::app.products.view.star', ['star' => $star]) }}</span>
                             <div class="bar-container">
                                 <div class="bar-fill" style="width: {{ $percentageRatings[$star] ?? 0 }}%;"></div>
                             </div>
@@ -420,13 +343,13 @@
                 @guest('customer')
                     <div class="review-input-box">
                         <p style="text-align: center; padding: 20px;">
-                            <a href="{{ route('shop.customer.session.index') }}" style="color: var(--primary);">Đăng nhập</a> để viết đánh giá
+                            <a href="{{ route('shop.customer.session.index') }}" style="color: var(--primary);">{{ trans('ta-vpp-theme::app.components.layouts.header.mobile.sign-in') }}</a> {{ trans('ta-vpp-theme::app.products.view.login-to-review') }}
                         </p>
                     </div>
                 @else
                     <div class="review-input-box" id="reviewForm">
                         <div class="rating-input">
-                            <span>Chọn đánh giá:</span>
+                            <span>{{ trans('ta-vpp-theme::app.products.view.select-rating') }}</span>
                             <div class="input-stars" id="input-stars">
                                 <i class="fa-solid fa-star" data-value="1"></i>
                                 <i class="fa-solid fa-star" data-value="2"></i>
@@ -435,10 +358,10 @@
                                 <i class="fa-solid fa-star" data-value="5"></i>
                             </div>
                         </div>
-                        <textarea id="reviewComment" placeholder="Viết nhận xét của bạn về sản phẩm..."></textarea>
+                        <textarea id="reviewComment" placeholder="{{ trans('ta-vpp-theme::app.products.view.write-review') }}"></textarea>
                         <button class="btn-submit-review" onclick="submitReview()">
                             <i class="fa-solid fa-paper-plane"></i> 
-                            <span id="reviewSubmitText">Gửi nhận xét</span>
+                            <span id="reviewSubmitText">{{ trans('ta-vpp-theme::app.products.view.send-review') }}</span>
                         </button>
                     </div>
                 @endguest
@@ -456,7 +379,7 @@
         @if ($product->description)
             <section class="description-section">
                 <div class="section-header">
-                    <h2>Mô tả sản phẩm</h2>
+                    <h2>{{ trans('ta-vpp-theme::app.products.view.description') }}</h2>
                 </div>
                 <div class="description-content">
                     {!! $product->description !!}
@@ -468,7 +391,7 @@
         @if ($product->related_products()->count())
             <section class="section">
                 <div class="section-header">
-                    <h2>Sản phẩm liên quan</h2>
+                    <h2>{{ trans('ta-vpp-theme::app.products.view.related-product-title') }}</h2>
                 </div>
                 <x-ta-vpp-theme::products.carousel 
                     title=""
@@ -580,7 +503,7 @@
             
             // Disable button
             btn.disabled = true;
-            btnText.textContent = 'Đang thêm...';
+            btnText.textContent = '{{ trans('ta-vpp-theme::app.products.view.adding') }}';
             
             // Set is_buy_now to 0
             document.getElementById('is_buy_now').value = '0';
@@ -599,7 +522,7 @@
                 const data = await response.json();
                 
                 if (data.message) {
-                    showMessage('success', data.message || 'Đã thêm sản phẩm vào giỏ hàng!');
+                    showMessage('success', data.message || '{{ trans('ta-vpp-theme::app.products.view.added-to-cart') }}');
                     
                     // Update mini cart count if exists
                     updateMiniCartCount();
@@ -859,33 +782,6 @@
                 loadMoreText.textContent = 'Đang tải...';
             }
             await loadReviews(currentReviewPage + 1);
-        }
-
-        async function estimateShipping() {
-            const province = document.getElementById('shipping_province').value;
-            const resultDiv = document.getElementById('shipping_estimate_result');
-            
-            if (!province) {
-                resultDiv.innerHTML = '';
-                return;
-            }
-
-            resultDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tính...';
-
-            try {
-                const response = await fetch('{{ route("tavpp.shipping.estimate") }}?province=' + encodeURIComponent(province));
-                const data = await response.json();
-                
-                if (data.rate !== undefined) {
-                    const formattedRate = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.rate);
-                    resultDiv.innerHTML = `Phí giao hàng dự kiến: <strong>${formattedRate}</strong>`;
-                } else {
-                    resultDiv.innerHTML = 'Không thể tính phí giao hàng.';
-                }
-            } catch (error) {
-                console.error('Error estimating shipping:', error);
-                resultDiv.innerHTML = 'Lỗi khi tính phí giao hàng.';
-            }
         }
 
         // ============================================

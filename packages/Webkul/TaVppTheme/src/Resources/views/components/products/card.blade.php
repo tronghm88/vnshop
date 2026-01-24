@@ -60,12 +60,12 @@
             <input type="hidden" name="product_id" value="{{ $product->id }}">
             <input type="hidden" name="quantity" value="1">
             <button type="submit" class="btn-add-cart">
-                <i class="fa-solid fa-cart-plus"></i> Thêm vào giỏ
+                <i class="fa-solid fa-cart-plus"></i> @lang('ta-vpp-theme::app.components.products.card.add-to-cart')
             </button>
         </form>
     @else
         <button class="btn-add-cart" disabled style="opacity: 0.5; cursor: not-allowed;">
-            Hết hàng
+            @lang('ta-vpp-theme::app.components.products.views.out-of-stock')
         </button>
     @endif
 </article>

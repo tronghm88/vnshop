@@ -16,8 +16,7 @@
 
 .hero-track {
   display: flex;
-  width: 500%;
-  animation: hero-slide 15s infinite;
+  width: 100%;
 }
 
 .hero-slide {
@@ -48,30 +47,10 @@
   background: rgba(255, 255, 255, 0.7);
 }
 
-@keyframes hero-slide {
-  0%,
-  18% {
-    transform: translateX(0%);
-  }
-  20%,
-  38% {
-    transform: translateX(-100%);
-  }
-  40%,
-  58% {
-    transform: translateX(-200%);
-  }
-  60%,
-  78% {
-    transform: translateX(-300%);
-  }
-  80%,
-  98% {
-    transform: translateX(-400%);
-  }
-  100% {
-    transform: translateX(0%);
-  }
+.slider-dot.active {
+  background: #fff;
+  width: 10px;
+  height: 10px;
 }
 
 .section {

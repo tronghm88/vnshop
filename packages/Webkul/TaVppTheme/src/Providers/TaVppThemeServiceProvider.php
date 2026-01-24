@@ -5,6 +5,11 @@ namespace Webkul\TaVppTheme\Providers;
 use Illuminate\Support\ServiceProvider;
 use Webkul\TaVppTheme\Http\ViewComposers\ProductVoucherComposer;
 use Illuminate\Support\Facades\View;
+use Webkul\TaVppTheme\Providers\TaVppEventServiceProvider;
+use Illuminate\Support\Facades\Event;
+use Webkul\Product\Repositories\ProductRepository;
+use Webkul\Product\Repositories\ProductReviewRepository;
+use Illuminate\Pagination\Paginator;
 
 class TaVppThemeServiceProvider extends ServiceProvider
 {
@@ -15,6 +20,8 @@ class TaVppThemeServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->register(TaVppEventServiceProvider::class);
+
         $this->mergeConfigFrom(
             dirname(__DIR__) . '/Config/system.php', 'core'
         );
@@ -46,6 +53,18 @@ class TaVppThemeServiceProvider extends ServiceProvider
             'shop::checkout.cart.index',
             \Webkul\TaVppTheme\Http\Composers\CartComposer::class
         );
+
+        // Register view composer for orders list page
+        View::composer(
+            'shop::customers.account.orders.index',
+            \Webkul\TaVppTheme\Http\Composers\OrdersComposer::class
+        );
+
+        // Register view composer for CMS pages to load featured products
+        View::composer(
+            ['shop::cms.page', 'ta-vpp-theme::cms.index'],
+            \Webkul\TaVppTheme\Http\Composers\CmsPageComposer::class
+        );
         
         $this->loadViewsFrom(__DIR__ . '/../Resources/views', 'ta-vpp-theme');
 
@@ -59,6 +78,7 @@ class TaVppThemeServiceProvider extends ServiceProvider
             __DIR__ . '/../Resources/assets/images' => public_path('themes/ta-vpp-theme/images'),
         ], 'ta-vpp-theme-assets');
 
-        
+        Paginator::defaultView('ta-vpp-theme::partials.pagination');
+        Paginator::defaultSimpleView('ta-vpp-theme::partials.pagination');
     }
 }
