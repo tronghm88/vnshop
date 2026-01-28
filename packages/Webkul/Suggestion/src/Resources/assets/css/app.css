@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.primary-button {
+    @apply flex gap-x-1.5 items-center place-content-center font-medium rounded-xl text-white bg-navyBlue border border-navyBlue px-8 py-4 max-w-max cursor-pointer transition-all hover:opacity-[0.9];
+}
+
+
+
+/* Change shop flex layout to grid layout for responsive in medium viewport */
+@media not all and (min-width: 768px) {
+    .max-md\:grid {
+        display: grid !important;
+    }
+}
+
+/* Hide shop header 1 in large screen */
+@media not all and (min-width: 1024px) {
+    .max-lg\:hidden {
+        display: none !important;
+    }
+}
+
+/* Show shop header 2 in large screen */
+@media not all and (min-width: 1024px) {
+    .max-lg\:flex {
+        display: flex !important;
+    }
+}
+
+.max-w-\[374px\] {
+    max-width: 374px !important;
+}
+
+@media not all and (min-width: 1180px) {
+    .max-1180\:px-\[0px\] {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+
+@media not all and (min-width: 768px) {
+    .max-md\:grid-cols-\[1fr\] {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+.justify-stretch {
+    justify-content: stretch !important;
+}
+
+.max-w-\[470px\] {
+    max-width: 470px !important;
+}
+
+@media not all and (min-width: 525px) {
+    .max-sm\:px-\[15px\] {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+}
+
+.left-3 {
+    left: .75rem !important;
+}
+
+.right-3 {
+    right: .75rem !important;
+}
+
+@media (min-width: 1180px) {
+    .\31 180\:hidden {
+        display: none !important;
+    }
+}
+
+@media not all and (min-width: 1180px) {
+    .max-1180\:px-0 {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+
+@media not all and (min-width: 1180px) {
+    .max-1180\:hidden {
+        display: none !important;
+    }
+}

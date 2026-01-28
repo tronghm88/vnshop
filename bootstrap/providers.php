@@ -46,4 +46,6 @@ return [
 
     // Custom Theme Providers
     Webkul\TaVppTheme\Providers\TaVppThemeServiceProvider::class,
+    Webkul\Suggestion\Providers\SuggestionServiceProvider::class,
+    // Webkul\ProductImporter\Providers\ProductImporterServiceProvider::class,
 ];
