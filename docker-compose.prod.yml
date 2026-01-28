@@ -1,0 +1,62 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: bagisto-app
+        container_name: bagisto-app
+        restart: unless-stopped
+        working_dir: /var/www
+        ports:
+            - "127.0.0.1:9000:9000" # Expose PHP-FPM to Host on port 9000
+        volumes:
+            - ./:/var/www
+        networks:
+            - bagisto-network
+        depends_on:
+            - db
+            - redis
+            - elasticsearch
+
+    db:
+        image: mysql:8.0
+        container_name: bagisto-db
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_USER: ${DB_USERNAME}
+            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+        volumes:
+            - dbdata:/var/lib/mysql
+        networks:
+            - bagisto-network
+
+    redis:
+        image: redis:alpine
+        container_name: bagisto-redis
+        restart: unless-stopped
+        networks:
+            - bagisto-network
+
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+        container_name: bagisto-elastic
+        restart: unless-stopped
+        environment:
+            - xpack.security.enabled=false
+            - discovery.type=single-node
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        volumes:
+            - esdata:/usr/share/elasticsearch/data
+        networks:
+            - bagisto-network
+
+networks:
+    bagisto-network:
+        driver: bridge
+
+volumes:
+    dbdata:
+    esdata:
