@@ -1,6 +1,6 @@
-# Production Deployment Guide (Docker + VPS + Host Nginx)
+# Production Deployment Guide (Docker + VPS + Host Nginx + Cloudflare SSL)
 
-This guide details how to deploy your Bagisto application to a Linux VPS using Docker, while utilizing the VPS's native Nginx server (instead of a Dockerized Nginx).
+This guide details how to deploy your Bagisto application to a Linux VPS using Docker, while utilizing the VPS's native Nginx server (instead of a Dockerized Nginx) and securing it with Cloudflare Origin Certificates.
 
 This approach uses the **"Push to GitHub -> Clone on VPS"** workflow, which avoids cross-platform build issues (macOS vs Linux) by building the Docker image directly on the Linux VPS.
 
@@ -13,6 +13,9 @@ This approach uses the **"Push to GitHub -> Clone on VPS"** workflow, which avoi
     *   **Docker** and **Docker Compose** installed.
     *   **Git** installed.
     *   **Nginx** installed directly on the host (`sudo apt install nginx`).
+*   **Cloudflare**:
+    *   Domain DNS managed by Cloudflare (Proxied status: Orange Cloud).
+    *   SSL/TLS encryption mode set to **Full (Strict)**.
 
 ---
 
@@ -215,18 +218,38 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 ---
 
-## Step 3: Host Nginx Configuration
+## Step 3: Cloudflare SSL & Host Nginx Configuration
 
 Since we are using the **Host's Nginx**, we need to configure it to serve static files directly and pass PHP requests to our Docker container on port `9000`.
 
-### 1. Create Nginx Config
+### 1. Save Cloudflare Origin Certificates
+
+1.  Go to **Cloudflare Dashboard > SSL/TLS > Origin Server**.
+2.  Click **Create Certificate**.
+3.  Keep default options (RSA 2048, generic validities) and click **Create**.
+4.  You will see "Origin Certificate" and "Private Key".
+5.  On your VPS, save these to files:
+
+    **Origin Certificate:**
+    ```bash
+    sudo nano /etc/ssl/certs/cf_origin_cert.pem
+    # Paste the "Origin Certificate" content here
+    ```
+
+    **Private Key:**
+    ```bash
+    sudo nano /etc/ssl/private/cf_origin_key.pem
+    # Paste the "Private Key" content here
+    ```
+
+### 2. Create Nginx Config
 Create a new configuration file.
 
 ```bash
 sudo nano /etc/nginx/sites-available/bagisto
 ```
 
-### 2. Paste Configuration
+### 3. Paste Configuration
 Replace `yourdomain.com` with your actual domain and `/var/www/bagisto` with your actual project path.
 
 ```nginx
@@ -234,6 +257,26 @@ server {
     listen 80;
     server_name yourdomain.com;
     
+    # Redirect all HTTP traffic to HTTPS
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name yourdomain.com;
+    
+    # Cloudflare Origin Certificates
+    ssl_certificate /etc/ssl/certs/cf_origin_cert.pem;
+    ssl_certificate_key /etc/ssl/private/cf_origin_key.pem;
+    
+    # SSL Optimization (Optional, but recommended)
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:BagistoSSL:10m;
+    ssl_session_tickets off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
     # Root points to the cloned project's public folder on the Host
     root /var/www/bagisto/public;
     
@@ -286,7 +329,7 @@ server {
 }
 ```
 
-### 3. Enable Site and Restart Nginx
+### 4. Enable Site and Restart Nginx
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/bagisto /etc/nginx/sites-enabled/
@@ -348,9 +391,10 @@ exit
 
 ## Summary of Architecture
 
-1.  **Request Flow**: User -> Host Nginx (Port 80/443)
-2.  **Static Files**: Host Nginx serves `.css`, `.js`, `.jpg` directly from `/var/www/bagisto/public` (Host filesystem).
-3.  **PHP Requests**: Host Nginx passes request via FastCGI to `127.0.0.1:9000`.
-4.  **Docker Processing**: Docker maps Host:9000 -> Container:9000.
-5.  **Execution**: `php-fpm` inside container executes code.
-6.  **Database**: Container connects to `db` container via Docker network.
+1.  **Request Flow**: User -> Cloudflare -> Host Nginx (Port 443)
+2.  **Encryption**: Traffic between Cloudflare and VPS is encrypted using Origin CA Certs.
+3.  **Static Files**: Host Nginx serves `.css`, `.js`, `.jpg` directly from `/var/www/bagisto/public` (Host filesystem).
+4.  **PHP Requests**: Host Nginx passes request via FastCGI to `127.0.0.1:9000`.
+5.  **Docker Processing**: Docker maps Host:9000 -> Container:9000.
+6.  **Execution**: `php-fpm` inside container executes code.
+7.  **Database**: Container connects to `db` container via Docker network.
