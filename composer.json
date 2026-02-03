@@ -98,7 +98,8 @@
             "Webkul\\Theme\\": "packages/Webkul/Theme/src",
             "Webkul\\User\\": "packages/Webkul/User/src",
             "Webkul\\TaVppTheme\\": "packages/Webkul/TaVppTheme/src",
-            "Webkul\\Suggestion\\": "packages/Webkul/Suggestion/src"
+            "Webkul\\Suggestion\\": "packages/Webkul/Suggestion/src",
+            "Webkul\\VnRegionalShipping\\": "packages/Webkul/VnRegionalShipping/src"
         }
     },
     "autoload-dev": {

@@ -29,6 +29,12 @@ return [
             'package_assets_directory' => 'src/Resources/assets',
         ],
 
+        'suggestion' => [
+            'hot_file'                 => 'suggestion-vite.hot',
+            'build_directory'          => 'themes/suggestion/build',
+            'package_assets_directory' => 'src/Resources/assets',
+        ],
+
         'installer' => [
             'hot_file'                 => 'installer-default-vite.hot',
             'build_directory'          => 'themes/installer/default/build',

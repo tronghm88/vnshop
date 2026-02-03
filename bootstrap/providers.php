@@ -48,4 +48,5 @@ return [
     Webkul\TaVppTheme\Providers\TaVppThemeServiceProvider::class,
     Webkul\Suggestion\Providers\SuggestionServiceProvider::class,
     // Webkul\ProductImporter\Providers\ProductImporterServiceProvider::class,
+    Webkul\VnRegionalShipping\Providers\VnRegionalShippingServiceProvider::class,
 ];
