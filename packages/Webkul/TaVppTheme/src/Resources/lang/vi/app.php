@@ -908,6 +908,7 @@ return [
         'title'   => 'Đây là kết quả cho : :query',
         'suggest' => 'Thay vào đó hãy tìm kiếm cho',
         'results' => 'Kết quả tìm kiếm',
+        'no-results' => 'Không tìm thấy kết quả...',
 
         'images' => [
             'index' => [

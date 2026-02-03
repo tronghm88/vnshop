@@ -14,7 +14,7 @@
     }
     
     // Generate product URL - use url_key if available, otherwise url_path
-    $productUrl = route('shop.product_or_category.index', $product->url_key);
+    $productUrl = $product->url_key? route('shop.product_or_category.index', $product->url_key) : '#';
 @endphp
 
 <article class="product-card">
@@ -65,7 +65,7 @@
         </form>
     @else
         <button class="btn-add-cart" disabled style="opacity: 0.5; cursor: not-allowed;">
-            @lang('ta-vpp-theme::app.components.products.views.out-of-stock')
+            @lang('ta-vpp-theme::app.products.view.out-of-stock')
         </button>
     @endif
 </article>

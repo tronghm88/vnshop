@@ -883,6 +883,7 @@ return [
         'title'   => 'These are results for : :query',
         'suggest' => 'Search instead for',
         'results' => 'Search results',
+        'no-results' => 'No results found',
 
         'images' => [
             'index' => [

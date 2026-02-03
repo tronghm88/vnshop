@@ -113,9 +113,9 @@
                         <div class="promo-header">
                             <i class="fa-solid fa-gift"></i>
                             <span>{{ trans('ta-vpp-theme::app.checkout.cart.index.promotions') }}</span>
-                            <a href="#" class="promo-view-more">
+                            <!-- <a href="#" class="promo-view-more">
                                 {{ trans('ta-vpp-theme::app.checkout.cart.index.view-more') }} <i class="fa-solid fa-chevron-right"></i>
-                            </a>
+                            </a> -->
                         </div>
                         <div class="promo-content">
                             <form id="coupon-form" method="POST">
