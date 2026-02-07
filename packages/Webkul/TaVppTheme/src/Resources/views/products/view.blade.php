@@ -20,6 +20,11 @@
     }
     
     $isInStock = $product->getTypeInstance()->haveSufficientQuantity(1);
+    
+    $productConfig = [];
+    if (Webkul\Product\Helpers\ProductType::hasVariants($product->type)) {
+        $productConfig = app('Webkul\Product\Helpers\ConfigurableOption')->getConfigurationConfig($product);
+    }
 @endphp
 
 {{-- SEO Meta Content --}}
@@ -304,6 +309,170 @@
             </div>
         </div>
 
+        {{-- Lightbox Gallery --}}
+        <div id="lightbox" class="lightbox">
+            <span class="close-lightbox" onclick="closeLightbox()">&times;</span>
+            <div class="lightbox-content-container">
+                <img class="lightbox-content" id="lightboxImage">
+                <a class="prev" onclick="moveLightbox(-1)">&#10094;</a>
+                <a class="next" onclick="moveLightbox(1)">&#10095;</a>
+            </div>
+            <div class="lightbox-thumbnails-container">
+                <div class="lightbox-thumbnails" id="lightboxThumbnails">
+                    {{-- Thumbnails will be populated by JS --}}
+                </div>
+            </div>
+        </div>
+
+        <style>
+            /* Lightbox CSS */
+            .lightbox {
+                display: none;
+                position: fixed;
+                z-index: 9999;
+                padding-top: 30px;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                background-color: rgba(0, 0, 0, 0.95);
+                backdrop-filter: blur(5px);
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            .lightbox-content-container {
+                position: relative;
+                width: 100%;
+                height: 75vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .lightbox-content {
+                margin: auto;
+                display: block;
+                width: auto;
+                height: auto;
+                max-width: 95%;
+                max-height: 100%;
+                object-fit: contain;
+                animation-name: zoom;
+                animation-duration: 0.3s;
+            }
+            @keyframes zoom {
+                from {transform: scale(0)} 
+                to {transform: scale(1)}
+            }
+            .close-lightbox {
+                position: absolute;
+                top: 15px;
+                right: 30px;
+                color: #f1f1f1;
+                font-size: 40px;
+                font-weight: bold;
+                transition: 0.3s;
+                cursor: pointer;
+                z-index: 10000;
+            }
+            .close-lightbox:hover,
+            .close-lightbox:focus {
+                color: #bbb;
+                text-decoration: none;
+                cursor: pointer;
+            }
+            .prev, .next {
+                cursor: pointer;
+                position: absolute;
+                top: 50%;
+                width: auto;
+                padding: 16px;
+                margin-top: -22px;
+                color: white;
+                font-weight: bold;
+                font-size: 30px;
+                transition: 0.6s ease;
+                border-radius: 0 3px 3px 0;
+                user-select: none;
+                -webkit-user-select: none;
+                z-index: 10000;
+                background-color: rgba(0,0,0,0.3);
+                transform: translateY(-50%);
+            }
+            .next {
+                right: 0;
+                border-radius: 3px 0 0 3px;
+            }
+            .prev {
+                left: 0;
+                border-radius: 3px 0 0 3px;
+            }
+            .prev:hover, .next:hover {
+                background-color: rgba(0, 0, 0, 0.8);
+            }
+
+            /* Lightbox Thumbnails */
+            .lightbox-thumbnails-container {
+                width: 100%;
+                height: 15vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 10px;
+                overflow-x: auto;
+            }
+            
+            .lightbox-thumbnails {
+                display: flex;
+                gap: 10px;
+                padding: 5px;
+            }
+            
+            .lightbox-thumb {
+                width: 60px;
+                height: 60px;
+                object-fit: cover;
+                cursor: pointer;
+                opacity: 0.6;
+                border: 2px solid transparent;
+                transition: 0.3s;
+                border-radius: 4px;
+            }
+            
+            .lightbox-thumb:hover {
+                opacity: 1;
+            }
+            
+            .lightbox-thumb.active {
+                opacity: 1;
+                border-color: var(--primary, #007bff);
+            }
+
+            .gallery-main img {
+                cursor: zoom-in;
+            }
+            
+            @media only screen and (max-width: 700px){
+                .lightbox-content {
+                    width: 100%;
+                }
+                .prev, .next {
+                    padding: 10px;
+                    font-size: 20px;
+                }
+                .lightbox-thumbnails-container {
+                     height: 12vh;
+                }
+                .lightbox-thumb {
+                    width: 50px;
+                    height: 50px;
+                }
+            }
+        </style>
+
         {{-- Rating Section --}}
         <section class="rating-section">
             <div class="rating-header">{{ trans('ta-vpp-theme::app.products.view.review') }}</div>
@@ -382,7 +551,7 @@
                     <h2>{{ trans('ta-vpp-theme::app.products.view.description') }}</h2>
                 </div>
                 <div class="description-content">
-                    {!! $product->description !!}
+                    {!! $product->short_description !!}
                 </div>
             </section>
         @endif
@@ -407,7 +576,14 @@
     @push('scripts')
     <script>
         // ============================================
-        // Gallery Functions (from sample HTML)
+        // Global Data
+        // ============================================
+        let productConfig = @json($productConfig);
+        let currentGalleryImages = @json($galleryImages);
+        let currentLightboxIndex = 0;
+
+        // ============================================
+        // Gallery Functions
         // ============================================
         function scrollThumbs(direction) {
             const thumbsContainer = document.getElementById('galleryThumbs');
@@ -420,8 +596,7 @@
             }
         }
 
-        // Thumbnail selection (from sample HTML)
-        document.addEventListener('DOMContentLoaded', function() {
+        function attachThumbListeners() {
             const thumbs = document.querySelectorAll('.thumb');
             const mainImg = document.getElementById('mainImage');
             
@@ -435,11 +610,139 @@
                     }
                 });
             });
+        }
 
+        function updateGallery(images) {
+            currentGalleryImages = images;
+            
+            // Update Main Image
+            const mainImg = document.getElementById('mainImage');
+            if (mainImg && images.length > 0) {
+                mainImg.src = images[0].large_image_url;
+            }
+
+            // Update Thumbs
+            const thumbsContainer = document.getElementById('galleryThumbs');
+            if (thumbsContainer) {
+                thumbsContainer.innerHTML = '';
+                images.forEach((img, index) => {
+                    const thumb = document.createElement('div');
+                    thumb.className = `thumb ${index === 0 ? 'active' : ''}`;
+                    thumb.dataset.image = img.large_image_url;
+                    thumb.innerHTML = `<img src="${img.small_image_url}" alt="">`;
+                    thumbsContainer.appendChild(thumb);
+                });
+                attachThumbListeners();
+            }
+        }
+
+        // ============================================
+        // Lightbox Functions
+        // ============================================
+        function openLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            if (lightbox) {
+                // Prevent scrolling on body
+                document.body.style.overflow = 'hidden';
+                
+                lightbox.style.display = 'flex';
+                // Find current image index
+                const mainImg = document.getElementById('mainImage');
+                let index = 0;
+                if (mainImg) {
+                    const currentSrc = mainImg.src;
+                    const foundIndex = currentGalleryImages.findIndex(img => img.large_image_url === currentSrc);
+                    if (foundIndex >= 0) index = foundIndex;
+                }
+                
+                // Populate thumbnails
+                populateLightboxThumbnails();
+                
+                showLightboxSlide(index);
+            }
+        }
+
+        function populateLightboxThumbnails() {
+            const container = document.getElementById('lightboxThumbnails');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (currentGalleryImages && currentGalleryImages.length > 0) {
+                currentGalleryImages.forEach((img, index) => {
+                    const thumb = document.createElement('img');
+                    thumb.src = img.small_image_url || img.large_image_url;
+                    thumb.className = `lightbox-thumb ${index === currentLightboxIndex ? 'active' : ''}`;
+                    thumb.onclick = () => showLightboxSlide(index);
+                    container.appendChild(thumb);
+                });
+            }
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            if (lightbox) {
+                lightbox.style.display = 'none';
+                // Restore scrolling on body
+                document.body.style.overflow = '';
+            }
+        }
+
+        function moveLightbox(n) {
+            showLightboxSlide(currentLightboxIndex + n);
+        }
+
+        function showLightboxSlide(n) {
+            if (!currentGalleryImages || currentGalleryImages.length === 0) return;
+            
+            if (n >= currentGalleryImages.length) n = 0;
+            if (n < 0) n = currentGalleryImages.length - 1;
+            
+            currentLightboxIndex = n;
+            const img = document.getElementById('lightboxImage');
+            if (img) {
+                const imageObj = currentGalleryImages[n];
+                img.src = imageObj.original_image_url || imageObj.large_image_url;
+            }
+            
+            // Update active thumbnail
+            const thumbs = document.querySelectorAll('.lightbox-thumb');
+            thumbs.forEach((thumb, index) => {
+                if (index === n) {
+                    thumb.classList.add('active');
+                    thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                } else {
+                    thumb.classList.remove('active');
+                }
+            });
+        }
+
+        // Document Ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initial thumb listeners
+            attachThumbListeners();
+
+            // Main Image Click -> Lightbox
+            const mainImg = document.getElementById('mainImage');
+            if (mainImg) {
+                mainImg.addEventListener('click', openLightbox);
+                mainImg.style.cursor = 'zoom-in';
+            }
+
+            // Lightbox close on outside click
+            const lightbox = document.getElementById('lightbox');
+            if (lightbox) {
+                lightbox.addEventListener('click', function(e) {
+                    if (e.target === lightbox) {
+                        closeLightbox();
+                    }
+                });
+            }
+            
             // Initialize variant selection
             initVariantSelection();
 
-            // Initialize review star rating (from sample HTML)
+            // Initialize review star rating
             initReviewStarRating();
 
             // Load reviews
@@ -488,9 +791,74 @@
                     const hiddenInput = document.getElementById('attribute_' + attributeId);
                     if (hiddenInput) {
                         hiddenInput.value = optionId;
+                        // Trigger check for variant match
+                        checkVariantMatch();
                     }
                 });
             });
+        }
+
+        function checkVariantMatch() {
+            if (!productConfig || !productConfig.index) return;
+
+            const selectedOptions = {};
+            let allSelected = true;
+
+            // Get all attributes from config
+            if (productConfig.attributes) {
+                productConfig.attributes.forEach(attr => {
+                   const input = document.getElementById('attribute_' + attr.id);
+                   if(input && input.value) {
+                       selectedOptions[attr.id] = input.value;
+                   } else {
+                       allSelected = false;
+                   }
+                });
+            }
+
+            // Only update images if we have a match (even partial? No, usually full match needed for specific variant images)
+            // But if user wants Color to change images even if Size not selected:
+            // Bagisto logic typically requires full match for "Variant", but we can try to find *any* variant that matches current selection?
+            // "When I click to color variant, the variant's images are now showed".
+            // If we want that behavior, we should look for *any* variant with this color.
+            
+            // Let's stick to strict match first, or try to find a variant that matches the *just clicked* attribute if others are missing?
+            // Actually, standard behavior: find a variant that matches ALL selected options.
+            // If only color is selected, we can't identify a unique variant ID easily unless we pick the first one.
+            
+            // However, the user said "When i click to color variant, the variant's images are now showed".
+            // If they mean "I want them to show", I should probably try to show images for the *option* if possible.
+            // But images are attached to variants (Red-S, Red-M).
+            // Strategy: Find the first variant in `index` that matches the currently selected options.
+            
+            let matchedVariantId = null;
+
+            // Iterate over all variants in index
+            for (const [variantId, attributes] of Object.entries(productConfig.index)) {
+                let isMatch = true;
+                for (const [attrId, optionId] of Object.entries(selectedOptions)) {
+                    // Check if this variant has this option for this attribute
+                    if (attributes[attrId] != optionId) {
+                        isMatch = false;
+                        break;
+                    }
+                }
+                
+                if (isMatch) {
+                    matchedVariantId = variantId;
+                    // If we want *exact* match of all attributes (i.e. full variant selection), we should check if we have all attributes.
+                    // But to support "Click Color -> Show Red Images" even if Size is empty:
+                    // We pick the first variant that has this Color.
+                    break; 
+                }
+            }
+
+            if (matchedVariantId) {
+                 // Check if this variant has images
+                 if (productConfig.variant_images && productConfig.variant_images[matchedVariantId] && productConfig.variant_images[matchedVariantId].length) {
+                     updateGallery(productConfig.variant_images[matchedVariantId]);
+                 }
+            }
         }
 
         // ============================================
