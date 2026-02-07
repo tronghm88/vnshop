@@ -50,22 +50,5 @@
                 @endif
             @endfor
         </div>
-        <div class="sold-count">Đã bán {{ rand(10, 1000) }}</div>
     </div>
-
-    {{-- Add to Cart Form --}}
-    @if ($isSaleable)
-        <form action="{{ route('shop.api.checkout.cart.store') }}" method="POST" class="add-to-cart-form">
-            @csrf
-            <input type="hidden" name="product_id" value="{{ $product->id }}">
-            <input type="hidden" name="quantity" value="1">
-            <button type="submit" class="btn-add-cart">
-                <i class="fa-solid fa-cart-plus"></i> @lang('ta-vpp-theme::app.components.products.card.add-to-cart')
-            </button>
-        </form>
-    @else
-        <button class="btn-add-cart" disabled style="opacity: 0.5; cursor: not-allowed;">
-            @lang('ta-vpp-theme::app.products.view.out-of-stock')
-        </button>
-    @endif
 </article>

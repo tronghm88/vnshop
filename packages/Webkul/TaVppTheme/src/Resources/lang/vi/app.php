@@ -831,6 +831,7 @@ return [
             'login-to-review'      => 'Đăng nhập để viết đánh giá',
             'tax-inclusive'          => 'Đã bao gồm tất cả các loại thuế',
             'up-sell-title'          => 'Chúng tôi tìm thấy các sản phẩm khác mà bạn có thể thích!',
+            'star'                  => ':star Sao',
         ],
 
         'type' => [

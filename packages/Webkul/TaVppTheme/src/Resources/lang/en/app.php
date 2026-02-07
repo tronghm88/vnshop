@@ -809,6 +809,7 @@ return [
             'review'                 => 'Reviews',
             'tax-inclusive'          => 'Inclusive of all taxes',
             'up-sell-title'          => 'We found other products you might like!',
+            'star'                  => ':star Star',
         ],
 
         'type' => [

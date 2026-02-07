@@ -281,7 +281,7 @@
                         </div>
                     @else
                         <div style="padding: 20px; background: #fee; border-radius: 8px; text-align: center; color: #c33;">
-                            <i class="fa-solid fa-circle-exclamation"></i> {{ trans('shop::app.products.view.inventory.out-of-stock') }}
+                            <i class="fa-solid fa-circle-exclamation"></i> {{ trans('shop::app.products.view.out-of-stock') }}
                         </div>
                     @endif
 

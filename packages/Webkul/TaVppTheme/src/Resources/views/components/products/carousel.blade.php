@@ -8,11 +8,17 @@
     $products = [];
 
     if ($src) {
+        
         $urlComponents = parse_url($src);
         
         $queryParams = [];
         if (isset($urlComponents['query'])) {
             parse_str($urlComponents['query'], $queryParams);
+        }
+
+        // ADD THIS BLOCK: Default to visible_individually = 1 if not set
+        if (! isset($queryParams['visible_individually'])) {
+            $queryParams['visible_individually'] = 1;
         }
 
         $products = app('Webkul\Product\Repositories\ProductRepository')->getAll($queryParams);
@@ -34,7 +40,7 @@
             
             <div class="carousel">
                 @foreach ($products as $product)
-                    <x-ta-vpp-theme::products.card :product="$product" />
+                    <x-ta-vpp-theme::products.card :product="$product"/>
                 @endforeach
             </div>
 
