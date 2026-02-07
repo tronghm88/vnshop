@@ -46,6 +46,7 @@ class Configurable extends AbstractType
         'weight',
         'status',
         'tax_category_id',
+        'visible_individually',
     ];
 
     /**
@@ -190,18 +191,18 @@ class Configurable extends AbstractType
     public function createVariant($product, $superAttributes, $data = [])
     {
         $sku = $product->sku.'-variant-'.implode('-', $superAttributes);
-
         $data = array_merge([
-            'sku'               => $sku,
-            'name'              => 'Variant '.implode(' ', $superAttributes),
-            'price'             => 0,
-            'weight'            => 0,
-            'status'            => 1,
-            'tax_category_id'   => '',
-            'url_key'           => $sku,
-            'short_description' => $sku,
-            'description'       => $sku,
-            'inventories'       => [],
+            'sku'                   => $sku,
+            'name'                  => 'Variant '.implode(' ', $superAttributes),
+            'price'                 => 0,
+            'weight'                => 0,
+            'status'                => 1,
+            'visible_individually'  => 0,
+            'tax_category_id'       => '',
+            'url_key'               => $sku,
+            'short_description'     => $sku,
+            'description'           => $sku,
+            'inventories'           => [],
         ], $data);
 
         $variant = parent::create([

@@ -1082,6 +1082,13 @@
                             </form>
                         </x-admin::form>
                     </div>
+                    <!-- Custom Link to Detail Edit -->
+                    <p class="cursor-pointer text-blue-600 transition-all hover:underline" v-if="typeof variant.id !== 'string'">
+                        <a :href="'{{ route('admin.catalog.products.edit', ':id') }}'.replace(':id', variant.id)"
+                        target="_blank">
+                            Detail Edit
+                        </a>
+                    </p>
                 </div>
             </div>
         </div>
