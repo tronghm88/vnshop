@@ -58,7 +58,12 @@
                 @break
 
             @case ($customization::CATEGORY_CAROUSEL)
-                {{-- Categories carousel - can be added later if needed --}}
+                <x-ta-vpp-theme::category-carousel 
+                    :title="$data['title'] ?? ''"
+                    :src="route('shop.api.categories.index', $data['filters'] ?? [])"
+                    :navigation-link="route('shop.home.index')"
+                    aria-label="{{ trans('shop::app.home.index.categories-carousel') }}" 
+                />
                 @break
 
             @case ($customization::PRODUCT_CAROUSEL)
