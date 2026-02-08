@@ -121,7 +121,7 @@
                         <x-ta-vpp-theme::products.card :product="$product" />
                     @empty
                         <div class="empty-products" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-                            <img src="{{ bagisto_asset('images/thank-you.png') }}" alt="Empty" style="margin: 0 auto 20px; max-width: 200px;">
+                        <img src="{{ bagisto_asset('images/notfound.svg', 'ta-vpp-theme') }}" alt="Empty" style="margin: 0 auto 20px; max-width: 200px;">
                             <p>@lang('shop::app.categories.view.empty')</p>
                         </div>
                     @endforelse
