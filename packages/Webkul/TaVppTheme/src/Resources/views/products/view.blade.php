@@ -551,9 +551,6 @@
                     <h2>{{ trans('ta-vpp-theme::app.products.view.description') }}</h2>
                 </div>
                 <div class="description-content">
-                    @php
-                        print_r($product);
-                    @endphp
                     {!! $product->description !!}
                 </div>
             </section>
